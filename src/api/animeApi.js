@@ -1,15 +1,11 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "/sankanime/api/anime", // ✅ arahkan ke /anime
+  baseURL: "/sankanime/api", // ⚡ proxy handle → https://www.sankavollerei.com
 });
 
 /**
  * Helper untuk menangani request API dan error secara terpusat.
- * @param {Function} apiCall - Fungsi panggilan Axios yang akan dieksekusi.
- * @param {string} errorMessage - Pesan error kustom untuk logging.
- * @returns {Promise<any>} Hasil data dari API.
- * @throws {Error} Melempar error jika request gagal.
  */
 const handleApiRequest = async (apiCall, errorMessage) => {
   try {
@@ -17,7 +13,7 @@ const handleApiRequest = async (apiCall, errorMessage) => {
     return response.data?.results ?? response.data;
   } catch (e) {
     console.error(errorMessage, e);
-    throw e; // ✅ fix bug
+    throw e; // ✅ perbaikan bug
   }
 };
 
@@ -28,9 +24,7 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000;
 let requestPromise = null;
 
 /**
- * Mengambil data yang dibutuhkan untuk halaman utama.
- * Menggunakan cache dari localStorage untuk mengurangi permintaan berulang.
- * @returns {Promise<object|null>} Data untuk halaman utama.
+ * Mengambil data home (/anime/home)
  */
 export const getHomeInfo = () => {
   if (requestPromise) {
@@ -61,7 +55,7 @@ export const getHomeInfo = () => {
 
       console.log("Mengambil data dari API home.");
       const results = await handleApiRequest(
-        () => apiClient.get("/home"), // ✅ fix ke /home
+        () => apiClient.get("/anime/home"), // ✅ endpoint benar
         "Gagal mengambil data home dari API:"
       );
 
@@ -83,123 +77,125 @@ export const getHomeInfo = () => {
 };
 
 /**
- * Mengambil informasi detail dari sebuah anime berdasarkan ID-nya.
+ * Info anime
  */
 export const fetchAnimeInfo = async (id, isRandom = false) => {
   if (isRandom) {
     const randomData = await handleApiRequest(
-      () => apiClient.get("/random/id"),
+      () => apiClient.get("/anime/random/id"),
       "Gagal mengambil ID anime acak:"
     );
     return handleApiRequest(
-      () => apiClient.get("/info", { params: { id: randomData } }),
+      () => apiClient.get("/anime/info", { params: { id: randomData } }),
       `Gagal mengambil info anime untuk ID acak: ${randomData}`
     );
   }
   return handleApiRequest(
-    () => apiClient.get("/info", { params: { id } }),
+    () => apiClient.get("/anime/info", { params: { id } }),
     `Gagal mengambil info anime untuk ID: ${id}`
   );
 };
 
 /**
- * Mengambil daftar episode dari sebuah anime.
+ * Episodes
  */
 export const getEpisodes = async (id) => {
   return handleApiRequest(
-    () => apiClient.get(`/episodes/${id}`),
+    () => apiClient.get(`/anime/episodes/${id}`),
     `Gagal mengambil episode untuk ID: ${id}`
   );
 };
 
 /**
- * Mengambil daftar server streaming untuk sebuah episode.
+ * Servers
  */
 export const getServers = async (id, episodeId) => {
   return handleApiRequest(
-    () => apiClient.get(`/servers/${id}`, { params: { ep: episodeId } }),
+    () => apiClient.get(`/anime/servers/${id}`, { params: { ep: episodeId } }),
     `Gagal mengambil server untuk episode: ${episodeId}`
   );
 };
 
 /**
- * Mengambil informasi stream (link video) dari server tertentu.
+ * Stream info
  */
 export const getStreamInfo = async (id, episodeId, server, type) => {
   return handleApiRequest(
     () =>
-      apiClient.get("/stream", { params: { id, ep: episodeId, server, type } }),
+      apiClient.get("/anime/stream", {
+        params: { id, ep: episodeId, server, type },
+      }),
     `Gagal mengambil stream info untuk episode: ${episodeId}`
   );
 };
 
 /**
- * Mengambil data untuk tooltip (Qtip) berdasarkan ID.
+ * Qtip
  */
 export const getQtip = async (id) => {
   const processedId = id.split("-").pop();
   return handleApiRequest(
-    () => apiClient.get(`/qtip/${processedId}`),
+    () => apiClient.get(`/anime/qtip/${processedId}`),
     `Gagal mengambil data Qtip untuk ID: ${id}`
   );
 };
 
 /**
- * Mengambil saran pencarian berdasarkan kata kunci.
+ * Search suggestion
  */
 export const getSearchSuggestion = async (keyword) => {
   return handleApiRequest(
-    () => apiClient.get("/search/suggest", { params: { keyword } }),
+    () => apiClient.get("/anime/search/suggest", { params: { keyword } }),
     "Gagal mengambil saran pencarian:"
   );
 };
 
 /**
- * Mengambil jadwal anime untuk tanggal tertentu.
+ * Schedule
  */
 export const getSchedInfo = async (date) => {
   return handleApiRequest(
-    () => apiClient.get("/schedule", { params: { date } }),
+    () => apiClient.get("/anime/schedule", { params: { date } }),
     `Gagal mengambil jadwal untuk tanggal: ${date}`
   );
 };
 
 /**
- * Mengambil informasi jadwal episode berikutnya untuk sebuah anime.
+ * Next episode schedule
  */
 export const getNextEpisodeSchedule = async (id) => {
   return handleApiRequest(
-    () => apiClient.get(`/schedule/${id}`),
+    () => apiClient.get(`/anime/schedule/${id}`),
     `Gagal mengambil jadwal episode berikutnya untuk ID: ${id}`
   );
 };
 
 /**
- * Mengambil daftar karakter dan pengisi suara untuk sebuah anime.
+ * Voice actors
  */
 export const fetchVoiceActorInfo = async (id, page) => {
   return handleApiRequest(
-    () => apiClient.get(`/character/list/${id}`, { params: { page } }),
+    () => apiClient.get(`/anime/character/list/${id}`, { params: { page } }),
     `Gagal mengambil info pengisi suara untuk ID: ${id}`
   );
 };
 
 /**
- * Mengambil daftar anime untuk kategori tertentu dengan paginasi.
+ * Category info
  */
 export const getCategoryInfo = async (path, page = 1) => {
   return handleApiRequest(
-    () => apiClient.get(`/${path}`, { params: { page } }),
+    () => apiClient.get(`/anime/${path}`, { params: { page } }),
     `Gagal mengambil data kategori untuk path: ${path}`
   );
 };
 
 /**
- * Melakukan pencarian anime berdasarkan kata kunci dan halaman.
+ * Search
  */
 export const getSearch = async (keyword, page = 1) => {
   return handleApiRequest(
-    () => apiClient.get("/search", { params: { keyword, page } }),
+    () => apiClient.get("/anime/search", { params: { keyword, page } }),
     `Gagal mengambil hasil pencarian untuk: ${keyword}`
   );
 };
