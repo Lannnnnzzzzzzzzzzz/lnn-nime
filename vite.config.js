@@ -12,6 +12,8 @@ export default defineConfig({
         target: "https://www.sankavollerei.com",
         changeOrigin: true,
         secure: false,
+        // hapus prefix "/sankanime/api" -> jadi root "/"
+        rewrite: (path) => path.replace(/^\/sankanime\/api/, ""),
         configure: (proxy, options) => {
           proxy.on("proxyReq", (proxyReq, req, res) => {
             proxyReq.setHeader("Origin", "https://lnn-nime.vercel.app");
