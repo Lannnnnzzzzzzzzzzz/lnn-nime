@@ -14,8 +14,8 @@ export default defineConfig({
         secure: false,
         configure: (proxy, options) => {
           proxy.on("proxyReq", (proxyReq, req, res) => {
-            proxyReq.setHeader("Origin", "https://sankanime.com");
-            proxyReq.setHeader("Referer", "https://sankanime.com/");
+            proxyReq.setHeader("Origin", "https://lnn-nime.vercel.app");
+            proxyReq.setHeader("Referer", "https://lnn-nime.vercel.app/");
 
             proxyReq.setHeader(
               "User-Agent",
